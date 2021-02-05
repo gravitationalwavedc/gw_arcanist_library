@@ -97,7 +97,7 @@ final class DjangoUnitTestEngineImpl
         // specified by the .arcconfig
         $appNames = $this->getAppNames();
         $additionalArgs = $this->getAdditionalManageArgs();
-        
+
         exec("$cmd $managepyPath test -v2 $appNames $additionalArgs 2>&1",
             $testLines, $testExitCode);
 
@@ -214,6 +214,12 @@ final class DjangoUnitTestEngineImpl
 
     private function processCoverageResults($results)
     {
+        // Get the current working directory (The python project root), so we can use it for the cover search later
+        $pythonRoot = getcwd();
+
+        // coverage annotation is relative to the project root, so we need to change directory
+        chdir($this->unitTestBase->getWorkingCopy()->getProjectRoot());
+
         // generate annotated source files to find out which lines have
         // coverage
         // limit files to only those "*.py" files in getPaths()
@@ -225,8 +231,14 @@ final class DjangoUnitTestEngineImpl
 
         // walk through project directory, searching for all ",cover" files
         // that coverage.py left behind
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
-            ".")) as $path) {
+        foreach (
+            new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(
+                    "."),
+                RecursiveIteratorIterator::LEAVES_ONLY,
+                RecursiveIteratorIterator::CATCH_GET_CHILD
+            ) as $path
+        ) {
             // paths are given as "./path/to/file.py,cover", so match the
             // "path/to/file.py" part
             if (!preg_match(":^\./(.*),cover$:", $path, $matches)) {
