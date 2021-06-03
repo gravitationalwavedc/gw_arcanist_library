@@ -98,7 +98,7 @@ final class DjangoUnitTestEngineImpl
         $appNames = $this->getAppNames();
         $additionalArgs = $this->getAdditionalManageArgs();
 
-        exec("$cmd $managepyPath test -v2 $appNames $additionalArgs 2>&1",
+        exec("$cmd $managepyPath test -v 2 $appNames $additionalArgs 2>&1",
             $testLines, $testExitCode);
 
         exec("mv .coverage " . $this->unitTestBase->getWorkingCopy()->getProjectRoot());
